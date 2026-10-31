@@ -1,0 +1,6 @@
+{
+  "name": "POWER RUN — 2D Adventure Platformer",
+  "description": "An action-packed 2D cartoon platformer adventure game starring your crew with superpowers, collectible coins, dynamic levels, epic boss battles, and character progression.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

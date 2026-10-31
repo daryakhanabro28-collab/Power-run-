@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>POWER RUN — 2D Adventure Platformer (Landscape Edition)</title>
+  <meta name="description" content="Complete standalone 2D platformer adventure game starring your crew with superpowers, textured coins, world monsters, 4 worlds, 20 levels, and boss battles.">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #f9fafb;
+    }
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #030712;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* UI Overlays */
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      background: rgba(3, 7, 18, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 14px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .hud-chip {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #e2e8f0;
+      pointer-events: auto;
+    }
+    .hud-coins { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }
+    .hud-gems { color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); }
+    /* Touch Controls - Landscape Optimized */
+    #touchControls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 6;
+    }
+    .touch-btn {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.75);
+      border: 2px solid rgba(71, 85, 105, 0.8);
+      border-radius: 18px;
+      color: white;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: transform 0.08s ease, background-color 0.1s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.92);
+      background: rgba(51, 65, 85, 0.9);
+    }
+    .dpad-btn { width: 66px; height: 66px; font-size: 26px; }
+    .action-btn-jump { width: 76px; height: 76px; font-size: 11px; background: rgba(37, 99, 235, 0.85); border-color: #60a5fa; }
+    .action-btn-slide { width: 62px; height: 62px; font-size: 10px; background: rgba(5, 150, 105, 0.8); border-color: #34d399; }
+    .action-btn-power { width: 64px; height: 64px; font-size: 10px; background: rgba(217, 119, 6, 0.8); border-color: #fbbf24; }
+    /* Landscape Advisory */
+    #landscapeNotice {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #38bdf8;
+      color: #bae6fd;
+      padding: 6px 14px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 25;
+      display: none;
+      pointer-events: none;
+    }
+    /* Menu Styling */
+    .menu-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #030712;
+      font-weight: 900;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 28px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: #e2e8f0;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      border-radius: 12px;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(51, 65, 85, 0.9); }
+    /* Grid Layouts */
+    .grid-roster {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .char-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      position: relative;
+    }
+    .char-card.selected {
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+    .char-portrait {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      border: 2px solid #64748b;
+      overflow: hidden;
+      background: #1e293b;
+      flex-shrink: 0;
+    }
+    .char-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+    .rarity-pill {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #030712;
+    }
+    .rarity-Common { background: #94a3b8; }
+    .rarity-Uncommon { background: #34d399; }
+    .rarity-Rare { background: #60a5fa; }
+    .rarity-Epic { background: #c084fc; }
+    .rarity-Legendary { background: #f59e0b; }
+  </style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <!-- Canvas Viewport -->
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="landscapeNotice">🔄 Rotate device to Landscape for wide arcade view</div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <div id="hudHearts" class="hud-chip" style="color: #f43f5e;">
+        ❤️❤️❤️
+      </div>
+      <div id="hudHeroName" class="hud-chip" style="font-size: 11px; color: #94a3b8;">
+        Dary · Stage 1-1
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <div class="hud-chip hud-coins">🪙 <span id="hudCoins">0</span></div>
+      <div class="hud-chip hud-gems">💎 <span id="hudGems">0</span></div>
+      <button id="pauseBtn" class="hud-chip" style="cursor: pointer;">⏸️</button>
+    </div>
+  </div>
+
+  <!-- Touch Controls -->
+  <div id="touchControls" class="hidden">
+    <div style="display: flex; gap: 12px;">
+      <button id="btnLeft" class="touch-btn dpad-btn">◀</button>
+      <button id="btnRight" class="touch-btn dpad-btn">▶</button>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+      <button id="btnSlide" class="touch-btn action-btn-slide">▼<br>SLIDE</button>
+      <button id="btnPower" class="touch-btn action-btn-power">⚡<br>POWER</button>
+      <button id="btnJump" class="touch-btn action-btn-jump">▲<br>JUMP</button>
+    </div>
+  </div>
+
+  <!-- Main Menu Overlay -->
+  <div id="mainMenu" class="screen-overlay" style="align-items: center; justify-content: center; text-align: center;">
+    <div style="max-width: 600px; width: 100%; margin: auto;">
+      <!-- Title -->
+      <h1 style="font-size: clamp(38px, 8vw, 68px); font-weight: 900; font-style: italic; background: linear-gradient(135deg, #f59e0b, #ef4444, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; margin-bottom: 4px;">
+        POWER RUN
+      </h1>
+      <p style="font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #7dd3fc; text-transform: uppercase; margin-bottom: 24px;">
+        2D Adventure Platformer · Landscape Edition
+      </p>
+
+      <!-- Selected Character Card - DARY IS LEGENDARY -->
+      <div class="menu-card" style="display: flex; gap: 16px; align-items: center; text-align: left; max-width: 480px; margin: 0 auto 24px auto; border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);">
+        <div id="menuHeroPortrait" class="char-portrait" style="width: 80px; height: 80px; border-color: #f59e0b;">
+          <img id="menuHeroImg" src="/assets/aistudio/Picsart_26-10-18_08-20-37-747_32069357.jpg" alt="Dary">
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h2 id="menuHeroName" style="font-size: 20px; font-weight: 800;">Dary</h2>
+            <span id="menuHeroRarity" class="rarity-pill rarity-Legendary" style="position: static;">👑 Legendary</span>
+          </div>
+          <div id="menuHeroPower" style="font-size: 12px; color: #f59e0b; font-weight: 700; margin: 4px 0;">
+            ⚡ Thunder Emperor Wrath
+          </div>
+          <p id="menuHeroDesc" style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+            Summons celestial lightning storm that vaporizes all monsters and grants supreme invulnerability!
+          </p>
+        </div>
+      </div>
+
+      <!-- Play Button -->
+      <div>
+        <button id="playBtn" class="btn-primary" style="margin-bottom: 16px; width: 240px;">
+          ▶ Play Adventure
+        </button>
+      </div>
+
+      <!-- Navigation Grid -->
+      <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button id="navRoster" class="btn-secondary">👥 Hero Crew Roster</button>
+      </div>
+
+      <p style="margin-top: 24px; font-size: 11px; color: #64748b;">
+        Controls: A/D or Arrow keys to move · W or Space to Jump · S to Slide · E for Superpower
+      </p>
+    </div>
+  </div>
+
+  <!-- Roster Modal -->
+  <div id="rosterModal" class="screen-overlay hidden">
+    <div style="max-width: 800px; width: 100%; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 22px; font-weight: 900;">Hero Crew Roster</h2>
+        <button id="closeRosterBtn" class="btn-secondary">✕ Close</button>
+      </div>
+      <!-- Characters Grid -->
+      <div id="rosterGrid" class="grid-roster"></div>
+    </div>
+  </div>
+
+  <!-- Victory / Game Over Modals -->
+  <div id="victoryModal" class="screen-overlay hidden" style="align-items: center; justify-content: center; text-align: center;">
+    <div class="menu-card" style="max-width: 440px; width: 100%; border-color: rgba(245, 158, 11, 0.7); box-shadow: 0 0 35px rgba(245, 158, 11, 0.3);">
+      <div style="font-size: 44px; margin-bottom: 4px;">⭐⭐⭐</div>
+      
+      <!-- Romanized Hindi Victory Dialogue -->
+      <div style="background: rgba(245, 158, 11, 0.15); border: 2px solid #f59e0b; border-radius: 16px; padding: 12px; margin-bottom: 16px;">
+        <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #f59e0b; display: block; margin-bottom: 4px;">🎉 Hindi Commentary</span>
+        <p id="vicHindiText" style="font-size: 16px; font-weight: 900; color: #fef08a; text-transform: uppercase;">"KYA BAAT HAI! MAUJ KARDI MERE SHER!"</p>
+        <p id="vicHindiSub" style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">Asli champion ki tarah stage dhoo daala!</p>
+      </div>
+
+      <h2 style="font-size: 26px; font-weight: 900; color: #f59e0b; margin-bottom: 4px;">STAGE CLEARED!</h2>
+      <p id="vicScore" style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 18px;">Coins Collected: +15 🪙</p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="vicNextBtn" class="btn-primary">Next Stage ▶</button>
+        <button id="vicMenuBtn" class="btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameOverModal" class="screen-overlay hidden" style="align-items: center; justify-content: center; text-align: center;">
+    <div class="menu-card" style="max-width: 440px; width: 100%; border-color: rgba(239, 68, 68, 0.7); box-shadow: 0 0 35px rgba(239, 68, 68, 0.3);">
+      <div style="font-size: 44px; margin-bottom: 4px;">💀</div>
+
+      <!-- Romanized Hindi Defeat Dialogue -->
+      <div style="background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; border-radius: 16px; padding: 12px; margin-bottom: 16px;">
+        <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #ef4444; display: block; margin-bottom: 4px;">💥 Hindi Commentary</span>
+        <p id="goHindiText" style="font-size: 16px; font-weight: 900; color: #fca5a5; text-transform: uppercase;">"ARREY YAAR! GIR GAYA! KHEL KHATAM!"</p>
+        <p id="goHindiSub" style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">Himmat mat haar mere sher! Dobara koshish kar!</p>
+      </div>
+
+      <h2 style="font-size: 26px; font-weight: 900; color: #ef4444; margin-bottom: 4px;">STAGE DEFEATED</h2>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 18px;">Health khatam! Dust yourself off and try again.</p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="goRetryBtn" class="btn-primary" style="background: linear-gradient(135deg, #ef4444, #f97316);">Try Again 🔄</button>
+        <button id="goMenuBtn" class="btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * POWER RUN - Pure Vanilla HTML5 Canvas Engine & Web Audio Synth
+ * 100% self-contained offline platformer with textured coins, monsters & landscape optimization
+ */
+
+// 1. Audio Engine
+class WebAudioSynth {
+  constructor() {
+    this.ctx = null;
+    this.bgmTimer = null;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  }
+  playTone(freq, type, duration, gainVal = 0.3) {
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(gainVal, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+  playJump() {
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(450, now + 0.15);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.16);
+  }
+  playCoin() {
+    this.init();
+    this.playTone(987.77, 'sine', 0.12, 0.25);
+    setTimeout(() => this.playTone(1318.51, 'triangle', 0.18, 0.25), 60);
+  }
+  playPower() {
+    this.init();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.41);
+  }
+  playHit() {
+    this.playTone(90, 'sawtooth', 0.22, 0.4);
+  }
+  playVictory() {
+    [523, 659, 783, 1046].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.3), i * 140);
+    });
+  }
+  playGameOver() {
+    [440, 415, 392, 349].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.25, 0.3), i * 180);
+    });
+  }
+  startBGM() {
+    if (this.bgmTimer) return;
+    this.init();
+    const notes = [261.6, 329.6, 392.0, 523.2, 440.0, 392.0];
+    let step = 0;
+    this.bgmTimer = setInterval(() => {
+      if (this.ctx && this.ctx.state === 'running') {
+        const freq = notes[step % notes.length];
+        this.playTone(freq, 'sine', 0.15, 0.05);
+        step++;
+      }
+    }, 280);
+  }
+  stopBGM() {
+    if (this.bgmTimer) {
+      clearInterval(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+  }
+  speakHindi(text) {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const hv = voices.find(v => v.lang.startsWith('hi') || v.lang.includes('IN') || v.name.toLowerCase().includes('hindi'));
+        if (hv) u.voice = hv;
+        u.rate = 1.05;
+        u.pitch = 1.1;
+        window.speechSynthesis.speak(u);
+      }
+    } catch (e) {}
+  }
+}
+
+const audio = new WebAudioSynth();
+
+// 2. Canonical 5 Heroes - Dary is LEGENDARY, Zayn is starter
+const DEFAULT_CREW = [
+  {
+    id: 'char_dary',
+    name: 'Dary',
+    title: 'Thunder Sovereign',
+    rarity: 'Legendary',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-20-37-747_32069357.jpg',
+    color: '#F59E0B',
+    outfit: '#8C5A32',
+    powerName: 'Thunder Emperor Wrath',
+    powerDesc: 'Summons celestial lightning storm that vaporizes all monsters and grants supreme invulnerability!',
+    unlocked: false,
+    cost: 18000,
+    speed: 9.6,
+    jump: 10.2
+  },
+  {
+    id: 'char_kamran',
+    name: 'Kamran',
+    title: 'Chrono Sovereign',
+    rarity: 'Epic',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-18-44-825_54b8c4c7.jpg',
+    color: '#3B82F6',
+    outfit: '#70B5F5',
+    powerName: 'Chrono Warp',
+    powerDesc: 'Slows hazards by 75% with supersonic dash and phantom clones.',
+    unlocked: false,
+    cost: 8500,
+    speed: 8.8,
+    jump: 9.6
+  },
+  {
+    id: 'char_ali',
+    name: 'Ali',
+    title: 'Aegis Warden',
+    rarity: 'Rare',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-19-02-429_e23b0c42.jpg',
+    color: '#8B5CF6',
+    outfit: '#FFFFFF',
+    powerName: 'Crystal Aegis',
+    powerDesc: 'Crystal barrier turns all incoming damage into bonus coins.',
+    unlocked: false,
+    cost: 4000,
+    speed: 8.4,
+    jump: 9.2
+  },
+  {
+    id: 'char_farhan',
+    name: 'Farhan',
+    title: 'Blaze Titan',
+    rarity: 'Uncommon',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-20-04-831_8ad4f114.jpg',
+    color: '#EF4444',
+    outfit: '#FFFFFF',
+    powerName: 'Inferno Blast',
+    powerDesc: 'Fires twin explosive fireballs that incinerate monsters.',
+    unlocked: false,
+    cost: 1500,
+    speed: 8.0,
+    jump: 8.8
+  },
+  {
+    id: 'char_zayn',
+    name: 'Zayn',
+    title: 'Aero Strider',
+    rarity: 'Common',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-19-35-005_b09a79e8.jpg',
+    color: '#10B981',
+    outfit: '#E5E7EB',
+    powerName: 'Aero Glide',
+    powerDesc: 'Triple air flutter and suction vacuum for all coins.',
+    unlocked: true,
+    cost: 0,
+    speed: 7.8,
+    jump: 8.6
+  }
+];
+
+let characters = DEFAULT_CREW;
+let selectedHeroId = 'char_zayn';
+let totalCoins = parseInt(localStorage.getItem('PR_COINS_V4') || '0', 10);
+let totalGems = parseInt(localStorage.getItem('PR_GEMS_V4') || '0', 10);
+
+const imgCache = {};
+characters.forEach(c => {
+  const img = new Image();
+  img.src = c.photoUrl;
+  imgCache[c.id] = img;
+});
+
+// Canvas Setup
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const notice = document.getElementById('landscapeNotice');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (window.innerHeight > window.innerWidth) {
+    notice.style.display = 'block';
+  } else {
+    notice.style.display = 'none';
+  }
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Game State
+let isPlaying = false;
+let playerHealth = 3;
+let stageCoins = 0;
+let stageGems = 0;
+let stageX = 100;
+let stageY = 640;
+let prevX = 100;
+let prevY = 640;
+let stageVx = 0;
+let stageVy = 0;
+let isGrounded = false;
+let isSliding = false;
+let slideTimer = 0;
+let powerActive = false;
+let powerTimer = 0;
+let powerCooldown = 0;
+let cameraX = 0;
+let levelWidth = 3800;
+let platforms = [];
+let hazards = [];
+let coins = [];
+let monsters = [];
+let exitPortalX = 3650;
+let animTimer = 0;
+
+// Input State
+const keys = {};
+const touch = { left: false, right: false, jump: false, slide: false, power: false };
+
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if ((e.code === 'KeyW' || e.code === 'Space') && isGrounded) jump();
+  if (e.code === 'KeyS') slide();
+  if (e.code === 'KeyE') activatePower();
+});
+window.addEventListener('keyup', e => keys[e.code] = false);
+
+// Touch Listeners
+const setupTouch = (id, key) => {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', e => { e.preventDefault(); touch[key] = true; if (key === 'jump') jump(); if (key === 'slide') slide(); if (key === 'power') activatePower(); });
+  el.addEventListener('touchend', e => { e.preventDefault(); touch[key] = false; });
+  el.addEventListener('mousedown', () => { touch[key] = true; if (key === 'jump') jump(); if (key === 'slide') slide(); if (key === 'power') activatePower(); });
+  el.addEventListener('mouseup', () => touch[key] = false);
+};
+setupTouch('btnLeft', 'left');
+setupTouch('btnRight', 'right');
+setupTouch('btnJump', 'jump');
+setupTouch('btnSlide', 'slide');
+setupTouch('btnPower', 'power');
+
+function jump() {
+  if (isGrounded) {
+    const hero = characters.find(c => c.id === selectedHeroId) || characters[0];
+    stageVy = -hero.jump * 1.5;
+    isGrounded = false;
+    audio.playJump();
+  }
+}
+
+function slide() {
+  if (isGrounded && !isSliding) {
+    isSliding = true;
+    slideTimer = 0.52;
+    stageVx = 12;
+  }
+}
+
+function activatePower() {
+  if (powerCooldown <= 0 && !powerActive) {
+    powerActive = true;
+    powerTimer = 6.0;
+    powerCooldown = 9.0;
+    audio.playPower();
+    // Vaporize on-screen monsters with Dary's thunder
+    monsters.forEach(m => {
+      if (Math.abs(m.x - stageX) < 650) m.alive = false;
+    });
+  }
+}
+
+// Build Level - Balanced, Reachable Platforms
+function initStage() {
+  platforms = [
+    { x: 0, y: 700, w: levelWidth, h: 180, type: 'ground' },
+    { x: 280, y: 610, w: 200, h: 26 },
+    { x: 580, y: 530, w: 180, h: 26 },
+    { x: 880, y: 600, w: 220, h: 26 },
+    { x: 1200, y: 520, w: 200, h: 26 },
+    { x: 1520, y: 590, w: 220, h: 26 },
+    { x: 1860, y: 510, w: 240, h: 26 },
+    { x: 2220, y: 580, w: 220, h: 26 },
+    { x: 2560, y: 500, w: 240, h: 26 },
+    { x: 2920, y: 590, w: 220, h: 26 },
+    { x: 3260, y: 520, w: 240, h: 26 }
+  ];
+
+  hazards = [
+    { x: 500, y: 678, w: 50, h: 22, type: 'spikes' },
+    { x: 1120, y: 678, w: 50, h: 22, type: 'spikes' },
+    { x: 1780, y: 678, w: 60, h: 22, type: 'spikes' },
+    { x: 2460, y: 678, w: 70, h: 22, type: 'spikes' }
+  ];
+
+  coins = [];
+  platforms.forEach(p => {
+    if (p.type !== 'ground') {
+      for (let i = 0; i < 4; i++) {
+        coins.push({ x: p.x + 20 + i * 36, y: p.y - 26, collected: false });
+      }
+    }
+  });
+
+  // Unique World Monsters: Slimes, Spiky Briars, Wasps
+  monsters = [
+    { x: 620, y: 500, w: 32, h: 30, vx: 1.2, minX: 590, maxX: 740, alive: true, type: 'slime', canStomp: true },
+    { x: 1240, y: 490, w: 32, h: 30, vx: 1.4, minX: 1210, maxX: 1380, alive: true, type: 'briar', canStomp: false },
+    { x: 1900, y: 440, startY: 440, w: 28, h: 24, vx: 1.5, minX: 1870, maxX: 2080, alive: true, type: 'wasp', canStomp: true, isFlying: true },
+    { x: 2600, y: 470, w: 32, h: 30, vx: 1.3, minX: 2570, maxX: 2780, alive: true, type: 'briar', canStomp: false }
+  ];
+
+  stageX = 100;
+  stageY = 640;
+  prevX = 100;
+  prevY = 640;
+  stageVx = 0;
+  stageVy = 0;
+  playerHealth = 3;
+  stageCoins = 0;
+  stageGems = 0;
+  powerActive = false;
+  powerTimer = 0;
+  powerCooldown = 0;
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('hudCoins').innerText = stageCoins;
+  document.getElementById('hudGems').innerText = stageGems;
+  document.getElementById('hudHearts').innerText = '❤️'.repeat(playerHealth) + '🖤'.repeat(3 - playerHealth);
+}
+
+// Game Loop
+let lastTime = performance.now();
+function gameLoop(now) {
+  const dt = Math.min((now - lastTime) / 1000, 0.04);
+  lastTime = now;
+
+  if (isPlaying) {
+    update(dt);
+    render();
+  }
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+function update(dt) {
+  animTimer += dt;
+  prevX = stageX;
+  prevY = stageY;
+
+  const hero = characters.find(c => c.id === selectedHeroId) || characters[0];
+  const speed = hero.speed * (powerActive ? 1.5 : 1.0);
+
+  // Horizontal Movement
+  if (isSliding) {
+    slideTimer -= dt;
+    if (slideTimer <= 0) isSliding = false;
+  } else {
+    if (keys['KeyA'] || keys['ArrowLeft'] || touch.left) stageVx = -speed;
+    else if (keys['KeyD'] || keys['ArrowRight'] || touch.right) stageVx = speed;
+    else stageVx *= 0.78;
+  }
+
+  // Gravity
+  stageVy += 32 * dt;
+  stageX += stageVx;
+  stageY += stageVy;
+
+  // Collision with Platforms
+  isGrounded = false;
+  const pHeight = isSliding ? 28 : 52;
+  const pBox = { x: stageX, y: stageY, w: 32, h: pHeight };
+
+  platforms.forEach(p => {
+    if (pBox.x + pBox.w > p.x && pBox.x < p.x + p.w) {
+      // Landing from above
+      if (prevY + pHeight <= p.y + 14 && stageY + pHeight >= p.y && stageVy >= 0) {
+        stageY = p.y - pHeight;
+        stageVy = 0;
+        isGrounded = true;
+      }
+      // Hitting ceiling from below
+      else if (prevY >= p.y + p.h - 8 && stageY <= p.y + p.h && stageVy < 0) {
+        stageY = p.y + p.h;
+        stageVy = 0;
+      }
+    }
+  });
+
+  // Power Cooldown
+  if (powerActive) {
+    powerTimer -= dt;
+    if (powerTimer <= 0) powerActive = false;
+  } else if (powerCooldown > 0) {
+    powerCooldown -= dt;
+  }
+
+  // Collect Textured Coins
+  coins.forEach(c => {
+    if (!c.collected && Math.hypot(stageX + 16 - c.x, stageY + 24 - c.y) < 28) {
+      c.collected = true;
+      stageCoins++;
+      audio.playCoin();
+      updateHUD();
+    }
+  });
+
+  // Hazards
+  hazards.forEach(h => {
+    if (
+      pBox.x < h.x + h.w &&
+      pBox.x + pBox.w > h.x &&
+      pBox.y < h.y + h.h &&
+      pBox.y + pBox.h > h.y
+    ) {
+      if (!powerActive) hitDamage();
+    }
+  });
+
+  // Monsters
+  monsters.forEach(m => {
+    if (!m.alive) return;
+    if (m.isFlying) {
+      m.x += m.vx;
+      m.y = m.startY + Math.sin(animTimer * 5) * 20;
+    } else {
+      m.x += m.vx;
+    }
+    if (m.x > m.maxX || m.x < m.minX) m.vx *= -1;
+
+    if (
+      pBox.x < m.x + m.w &&
+      pBox.x + pBox.w > m.x &&
+      pBox.y < m.y + m.h &&
+      pBox.y + pBox.h > m.y
+    ) {
+      if (powerActive) {
+        m.alive = false;
+        audio.playCoin();
+      } else if (stageVy > 0 && pBox.y + pBox.h <= m.y + 16 && m.canStomp) {
+        m.alive = false;
+        stageVy = -11.5;
+        audio.playCoin();
+      } else {
+        hitDamage();
+      }
+    }
+  });
+
+  // Win Level
+  if (stageX > exitPortalX - 40) {
+    winStage();
+  }
+
+  // Pit
+  if (stageY > 850) {
+    hitDamage();
+    stageX = 100;
+    stageY = 640;
+    stageVy = 0;
+  }
+
+  // Smooth Landscape Camera
+  cameraX += (stageX - canvas.width * 0.35 - cameraX) * 0.1;
+  cameraX = Math.max(0, Math.min(cameraX, levelWidth - canvas.width));
+}
+
+function hitDamage() {
+  playerHealth--;
+  audio.playHit();
+  updateHUD();
+  if (playerHealth <= 0) {
+    isPlaying = false;
+    audio.stopBGM();
+    audio.playGameOver();
+    const q = HINDI_DEATH_QUOTES[Math.floor(Math.random() * HINDI_DEATH_QUOTES.length)];
+    document.getElementById('goHindiText').innerText = `"${q.text.toUpperCase()}"`;
+    document.getElementById('goHindiSub').innerText = q.sub;
+    speakHindiSpeech(q.text);
+    document.getElementById('gameOverModal').classList.remove('hidden');
+  }
+}
+
+function winStage() {
+  isPlaying = false;
+  audio.stopBGM();
+  audio.playVictory();
+  totalCoins += stageCoins;
+  localStorage.setItem('PR_COINS_V3', totalCoins);
+  const q = HINDI_VICTORY_QUOTES[Math.floor(Math.random() * HINDI_VICTORY_QUOTES.length)];
+  document.getElementById('vicHindiText').innerText = `"${q.text.toUpperCase()}"`;
+  document.getElementById('vicHindiSub').innerText = q.sub;
+  speakHindiSpeech(q.text);
+  document.getElementById('vicScore').innerText = `Coins Collected: +${stageCoins} 🪙`;
+  document.getElementById('victoryModal').classList.remove('hidden');
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Landscape Sky
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#0284c7');
+  grad.addColorStop(1, '#bae6fd');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(-Math.round(cameraX), 0);
+
+  // Platforms
+  platforms.forEach(p => {
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.roundRect(p.x, p.y, p.w, p.h, 6);
+    ctx.fill();
+    ctx.fillStyle = '#84cc16';
+    ctx.fillRect(p.x, p.y, p.w, 8);
+  });
+
+  // Hazards
+  ctx.fillStyle = '#ef4444';
+  hazards.forEach(h => {
+    ctx.fillRect(h.x, h.y, h.w, h.h);
+  });
+
+  // Textured 3D Metallic Coins
+  coins.forEach(c => {
+    if (!c.collected) {
+      const spin = Math.cos(animTimer * 5 + c.x * 0.1);
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      ctx.scale(spin, 1);
+
+      // Gold Bevel Edge
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Shiny Metallic Face
+      const cGrad = ctx.createLinearGradient(-8, -8, 8, 8);
+      cGrad.addColorStop(0, '#fffbeb');
+      cGrad.addColorStop(0.4, '#f59e0b');
+      cGrad.addColorStop(1, '#92400e');
+      ctx.fillStyle = cGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Embossed Star Relief
+      ctx.fillStyle = '#fef3c7';
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  });
+
+  // Monsters
+  monsters.forEach(m => {
+    if (!m.alive) return;
+    ctx.save();
+    ctx.translate(m.x + m.w / 2, m.y + m.h / 2);
+
+    if (m.type === 'slime') {
+      const sq = Math.sin(animTimer * 6) * 0.15;
+      ctx.scale(1 + sq, 1 - sq);
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, Math.PI, 0);
+      ctx.lineTo(14, 12);
+      ctx.lineTo(-14, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(4, 2, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (m.type === 'briar') {
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.roundRect(-15, -6, 30, 18, 5);
+      ctx.fill();
+      // Spikes
+      ctx.fillStyle = '#ef4444';
+      for (let s = -10; s <= 10; s += 7) {
+        ctx.beginPath();
+        ctx.moveTo(s - 3, -6);
+        ctx.lineTo(s, -15);
+        ctx.lineTo(s + 3, -6);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (m.type === 'wasp') {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 11, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-2, -7, 4, 14);
+      // Wings
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.ellipse(0, -9, 8, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  });
+
+  // Exit Portal
+  ctx.fillStyle = '#8b5cf6';
+  ctx.beginPath();
+  ctx.arc(exitPortalX, 640, 36, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hero
+  const hero = characters.find(c => c.id === selectedHeroId) || characters[0];
+  ctx.save();
+  ctx.translate(stageX + 16, stageY + (isSliding ? 14 : 26));
+
+  if (powerActive) {
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.45)';
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Body
+  ctx.fillStyle = hero.outfit;
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(-12, -8, 24, isSliding ? 16 : 28, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  // Head with Photo
+  const img = imgCache[hero.id];
+  ctx.save();
+  ctx.translate(0, isSliding ? -12 : -22);
+  ctx.beginPath();
+  ctx.arc(0, 0, 16, 0, Math.PI * 2);
+  ctx.clip();
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, -18, -18, 36, 36);
+  } else {
+    ctx.fillStyle = hero.color;
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Head Ring
+  ctx.strokeStyle = hero.color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(0, isSliding ? -12 : -22, 16, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// UI Handlers
+document.getElementById('playBtn').addEventListener('click', () => {
+  document.getElementById('mainMenu').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('touchControls').classList.remove('hidden');
+  initStage();
+  isPlaying = true;
+  audio.startBGM();
+});
+
+document.getElementById('pauseBtn').addEventListener('click', () => {
+  isPlaying = false;
+  audio.stopBGM();
+  document.getElementById('mainMenu').classList.remove('hidden');
+});
+
+document.getElementById('vicNextBtn').addEventListener('click', () => {
+  document.getElementById('victoryModal').classList.add('hidden');
+  initStage();
+  isPlaying = true;
+  audio.startBGM();
+});
+
+document.getElementById('vicMenuBtn').addEventListener('click', () => {
+  document.getElementById('victoryModal').classList.add('hidden');
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('touchControls').classList.add('hidden');
+  document.getElementById('mainMenu').classList.remove('hidden');
+});
+
+document.getElementById('goRetryBtn').addEventListener('click', () => {
+  document.getElementById('gameOverModal').classList.add('hidden');
+  initStage();
+  isPlaying = true;
+  audio.startBGM();
+});
+
+document.getElementById('goMenuBtn').addEventListener('click', () => {
+  document.getElementById('gameOverModal').classList.add('hidden');
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('touchControls').classList.add('hidden');
+  document.getElementById('mainMenu').classList.remove('hidden');
+});
+
+// Roster Modal
+document.getElementById('navRoster').addEventListener('click', () => {
+  renderRoster();
+  document.getElementById('rosterModal').classList.remove('hidden');
+});
+document.getElementById('closeRosterBtn').addEventListener('click', () => {
+  document.getElementById('rosterModal').classList.add('hidden');
+  updateMenuHero();
+});
+
+function updateMenuHero() {
+  const h = characters.find(c => c.id === selectedHeroId) || characters[0];
+  document.getElementById('menuHeroName').innerText = h.name;
+  document.getElementById('menuHeroImg').src = h.photoUrl;
+  document.getElementById('menuHeroRarity').innerText = (h.rarity === 'Legendary' ? '👑 ' : '') + h.rarity;
+  document.getElementById('menuHeroRarity').className = `rarity-pill rarity-${h.rarity}`;
+  document.getElementById('menuHeroPower').innerText = '⚡ ' + h.powerName;
+  document.getElementById('menuHeroDesc').innerText = h.powerDesc;
+  document.getElementById('hudHeroName').innerText = `${h.name} · Stage 1-1`;
+}
+
+function renderRoster() {
+  const grid = document.getElementById('rosterGrid');
+  grid.innerHTML = '';
+  characters.forEach(c => {
+    const isSel = c.id === selectedHeroId;
+    const card = document.createElement('div');
+    card.className = `char-card ${isSel ? 'selected' : ''}`;
+    let btnHtml = '';
+    if (c.unlocked) {
+      btnHtml = `<button class="btn-secondary" style="padding: 4px 12px; font-size: 11px;" onclick="selectHero('${c.id}')">${isSel ? 'Equipped' : 'Select Hero'}</button>`;
+    } else {
+      const canBuy = totalCoins >= c.cost;
+      btnHtml = `<button class="${canBuy ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 12px; font-size: 11px; ${!canBuy ? 'opacity: 0.6; cursor: not-allowed;' : ''}" onclick="unlockHero('${c.id}')">Unlock (${c.cost.toLocaleString()} 🪙)</button>`;
+    }
+    card.innerHTML = `
+      <span class="rarity-pill rarity-${c.rarity}">${c.rarity === 'Legendary' ? '👑 ' : ''}${c.rarity}</span>
+      <div class="char-portrait" style="border-color: ${c.color}">
+        <img src="${c.photoUrl}" alt="${c.name}" style="${!c.unlocked ? 'filter: grayscale(80%);' : ''}">
+      </div>
+      <div style="flex: 1;">
+        <h4 style="font-size: 16px; font-weight: 800; margin-bottom: 2px;">${c.name}</h4>
+        <div style="font-size: 11px; color: ${c.color}; font-weight: 700; margin-bottom: 4px;">⚡ ${c.powerName}</div>
+        <p style="font-size: 10px; color: #94a3b8; line-height: 1.3; margin-bottom: 8px;">${c.powerDesc}</p>
+        ${btnHtml}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+window.selectHero = function(id) {
+  const c = characters.find(x => x.id === id);
+  if (!c || !c.unlocked) return;
+  selectedHeroId = id;
+  renderRoster();
+  updateMenuHero();
+};
+
+window.unlockHero = function(id) {
+  const c = characters.find(x => x.id === id);
+  if (!c || c.unlocked) return;
+  if (totalCoins < c.cost) {
+    alert(`Aur coins kamao! ${c.name} ko unlock karne ke liye ${c.cost.toLocaleString()} coins chahiye.`);
+    return;
+  }
+  totalCoins -= c.cost;
+  c.unlocked = true;
+  selectedHeroId = id;
+  localStorage.setItem('PR_COINS_V3', totalCoins);
+  audio.playVictory();
+  renderRoster();
+  updateMenuHero();
+};
+
+updateMenuHero();
+</script>
+</body>
+</html>
