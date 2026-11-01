@@ -1,6 +1,6 @@
 import { Character, WorldConfig, LevelConfig, Mission, GameSaveData } from '../types/game';
 
-export const STORAGE_KEY = 'POWER_RUN_SAVE_DATA_V4';
+export const STORAGE_KEY = 'POWER_RUN_SAVE_DATA_V5';
 
 export const DEFAULT_CHARACTERS: Character[] = [
   {
@@ -26,6 +26,28 @@ export const DEFAULT_CHARACTERS: Character[] = [
     baseStats: { speed: 9.6, jump: 10.2, powerCooldown: 8, powerDuration: 7.0 }
   },
   {
+    id: 'char_gulsher',
+    name: 'Gul Sher Abro',
+    title: 'Titan Earthbreaker',
+    rarity: 'Legendary',
+    photoUrl: '/assets/aistudio/Picsart_26-06-06_12-34-52-007_e788d588.jpg',
+    avatarBgColor: '#EA580C',
+    outfitColor: '#4A3B32', // Checked fedora shirt matching photograph
+    accentColor: '#F97316',
+    hairStyle: 'fedora_hat',
+    powerType: 'titan',
+    powerName: 'Titan Elephant Stomp',
+    powerDescription: 'Earth-shattering elephant tremor pulverizes all monsters on screen, turns dangerous spikes into gold coins, and stuns titans!',
+    unlocked: false,
+    unlockCostCoins: 14000,
+    unlockCostFragments: 150,
+    currentFragments: 0,
+    requiredFragments: 150,
+    level: 1,
+    upgrades: { speedLevel: 1, jumpLevel: 1, durationLevel: 1, cooldownLevel: 1 },
+    baseStats: { speed: 9.2, jump: 10.4, powerCooldown: 8.5, powerDuration: 6.5 }
+  },
+  {
     id: 'char_kamran',
     name: 'Kamran',
     title: 'Chrono Sovereign',
@@ -46,6 +68,28 @@ export const DEFAULT_CHARACTERS: Character[] = [
     level: 1,
     upgrades: { speedLevel: 1, jumpLevel: 1, durationLevel: 1, cooldownLevel: 1 },
     baseStats: { speed: 8.8, jump: 9.6, powerCooldown: 10, powerDuration: 5.5 }
+  },
+  {
+    id: 'char_shahzad',
+    name: 'Shahzad Abro',
+    title: 'Shadow Phantom',
+    rarity: 'Epic',
+    photoUrl: '/assets/aistudio/Picsart_26-10-18_08-21-02-679_6581de0e.jpg',
+    avatarBgColor: '#6366F1',
+    outfitColor: '#18181B', // Sleek black shirt matching photograph
+    accentColor: '#818CF8',
+    hairStyle: 'sleek_dark',
+    powerType: 'shadow',
+    powerName: 'Eclipse Phantom Dash',
+    powerDescription: 'Dashes forward at supersonic speed while invulnerable, slicing all monsters in path and magnetically pulling all nearby gems and coins!',
+    unlocked: false,
+    unlockCostCoins: 6500,
+    unlockCostFragments: 90,
+    currentFragments: 0,
+    requiredFragments: 90,
+    level: 1,
+    upgrades: { speedLevel: 1, jumpLevel: 1, durationLevel: 1, cooldownLevel: 1 },
+    baseStats: { speed: 9.4, jump: 9.4, powerCooldown: 9.0, powerDuration: 5.5 }
   },
   {
     id: 'char_ali',
@@ -378,13 +422,20 @@ export function loadSaveData(): GameSaveData {
     if (!raw) return getInitialSaveData();
     const data = JSON.parse(raw) as GameSaveData;
     const defaultData = getInitialSaveData();
+
+    // Map default characters with saved progress
+    const mergedDefaults = DEFAULT_CHARACTERS.map(dc => {
+      const existing = data.characters?.find(c => c.id === dc.id);
+      return existing ? { ...dc, ...existing, photoUrl: dc.photoUrl, rarity: dc.rarity, powerName: dc.powerName, powerDescription: dc.powerDescription } : dc;
+    });
+
+    // Retain custom user-created characters
+    const customCharacters = (data.characters || []).filter(c => c.id.startsWith('char_custom_'));
+
     return {
       ...defaultData,
       ...data,
-      characters: DEFAULT_CHARACTERS.map(dc => {
-        const existing = data.characters?.find(c => c.id === dc.id);
-        return existing ? { ...dc, ...existing, rarity: dc.rarity, powerName: dc.powerName, powerDescription: dc.powerDescription } : dc;
-      }),
+      characters: [...mergedDefaults, ...customCharacters],
       stats: { ...defaultData.stats, ...(data.stats || {}) },
       settings: { ...defaultData.settings, ...(data.settings || {}) }
     };

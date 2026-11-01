@@ -301,7 +301,7 @@ export class GameEngine {
     soundManager.playPower(this.character.powerType);
     this.createShockwave(this.playerX + this.playerWidth / 2, this.playerY + this.playerHeight / 2, this.character.accentColor);
 
-    // Legendary Dary Overdrive: Celstial Lightning Overdrive
+    // Legendary Dary Overdrive: Celestial Lightning Overdrive
     if (this.character.id === 'char_dary' || this.character.powerType === 'thunder') {
       this.playerVx = (this.playerFacingRight ? 1 : -1) * 18;
       this.screenShake = 16;
@@ -316,6 +316,64 @@ export class GameEngine {
       });
       // Stun/damage boss if present
       if (this.boss && !this.boss.defeated) {
+        this.hitBoss(2);
+      }
+    } else if (this.character.powerType === 'titan' || this.character.id === 'char_gulsher') {
+      // Gul Sher Abro: Titan Elephant Earth Stomp
+      this.screenShake = 24;
+      this.playerVy = -8; // Little jump slam
+      this.createShockwave(this.playerX + this.playerWidth / 2, this.playerY + this.playerHeight, '#F97316');
+      
+      // Crush all monsters in wide area
+      this.monsters.forEach((m) => {
+        if (Math.abs(m.x - this.playerX) < 850 && m.alive) {
+          m.alive = false;
+          this.enemiesDefeated++;
+          this.score += 350;
+          this.createShockwave(m.x + m.width / 2, m.y + m.height / 2, '#EA580C');
+        }
+      });
+
+      // Convert nearby hazards/spikes into gold coins
+      for (const hz of this.hazards) {
+        if (Math.abs(hz.x - this.playerX) < 750 && hz.x > -1000) {
+          this.collectibles.push({
+            id: `stomp_coin_${hz.x}_${Date.now()}`,
+            x: hz.x + hz.width / 2 - 11,
+            y: hz.y - 10,
+            width: 22,
+            height: 22,
+            type: 'coin',
+            collected: false,
+            value: 1
+          });
+          this.createSparks(hz.x + hz.width / 2, hz.y, '#FBBF24', 8);
+          hz.x = -9999; // Flatten hazard!
+        }
+      }
+
+      // Heavy boss smash
+      if (this.boss && !this.boss.defeated) {
+        this.hitBoss(3);
+      }
+    } else if (this.character.powerType === 'shadow' || this.character.id === 'char_shahzad') {
+      // Shahzad Abro: Eclipse Phantom Dash
+      const dir = this.playerFacingRight ? 1 : -1;
+      this.playerVx = dir * 22; // Supersonic shadow dash
+      this.screenShake = 10;
+      this.createShockwave(this.playerX + this.playerWidth / 2, this.playerY + this.playerHeight / 2, '#818CF8');
+      
+      // Slice through any monster in forward path
+      this.monsters.forEach((m) => {
+        if (m.alive && Math.abs(m.y - this.playerY) < 60 && Math.sign(m.x - this.playerX) === dir && Math.abs(m.x - this.playerX) < 600) {
+          m.alive = false;
+          this.enemiesDefeated++;
+          this.score += 300;
+          this.createSparks(m.x + m.width / 2, m.y + m.height / 2, '#6366F1', 18);
+        }
+      });
+
+      if (this.boss && !this.boss.defeated && Math.abs(this.boss.x - this.playerX) < 300) {
         this.hitBoss(2);
       }
     } else if (this.character.powerType === 'fire') {
@@ -873,14 +931,16 @@ export class GameEngine {
         if (this.afterImages.length > 5) this.afterImages.pop();
       }
 
-      // Aero coin suction
-      if (this.character.powerType === 'aero') {
+      // Aero & Shadow coin/gem suction
+      if (this.character.powerType === 'aero' || this.character.powerType === 'shadow') {
+        const pullRadius = this.character.powerType === 'shadow' ? 440 : 260;
+        const pullSpeed = this.character.powerType === 'shadow' ? 0.22 : 0.12;
         for (const col of this.collectibles) {
-          if (!col.collected && col.type === 'coin') {
+          if (!col.collected) {
             const dist = Math.hypot(col.x - this.playerX, col.y - this.playerY);
-            if (dist < 260) {
-              col.x += (this.playerX - col.x) * 0.12;
-              col.y += (this.playerY - col.y) * 0.12;
+            if (dist < pullRadius) {
+              col.x += (this.playerX - col.x) * pullSpeed;
+              col.y += (this.playerY - col.y) * pullSpeed;
             }
           }
         }
@@ -956,7 +1016,13 @@ export class GameEngine {
         pBox.y + pBox.height > hazard.y
       ) {
         if (this.playerInvincibleTimer <= 0) {
-          if (this.superpowerActive && (this.character.powerType === 'crystal' || this.character.id === 'char_dary')) {
+          if (
+            this.superpowerActive &&
+            (this.character.powerType === 'crystal' ||
+              this.character.id === 'char_dary' ||
+              this.character.powerType === 'titan' ||
+              this.character.powerType === 'shadow')
+          ) {
             if (this.character.powerType === 'crystal') {
               this.coinsCollected += 2;
               soundManager.playCoin();
@@ -1001,7 +1067,14 @@ export class GameEngine {
       ) {
         const isStomp = this.playerVy > 0 && pBox.y + pBox.height <= m.y + 16;
 
-        if (this.superpowerActive && (this.character.id === 'char_dary' || this.character.powerType === 'thunder' || this.character.powerType === 'fire')) {
+        if (
+          this.superpowerActive &&
+          (this.character.id === 'char_dary' ||
+            this.character.powerType === 'thunder' ||
+            this.character.powerType === 'fire' ||
+            this.character.powerType === 'titan' ||
+            this.character.powerType === 'shadow')
+        ) {
           // Instant pulverize
           m.alive = false;
           this.enemiesDefeated++;

@@ -1,0 +1,8 @@
+{
+  "appId": "com.powerrun.game",
+  "appName": "POWER RUN",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

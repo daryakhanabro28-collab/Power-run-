@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { soundManager } from '../audio/soundManager';
-import { RotateCcw, Home, Skull, Volume2, Flame } from 'lucide-react';
+import { RotateCcw, Home, Skull, Flame } from 'lucide-react';
 
 interface GameOverModalProps {
   onRetry: () => void;
@@ -8,12 +8,12 @@ interface GameOverModalProps {
 }
 
 const HINDI_DEATH_LINES = [
-  { text: "Arrey yaar! Gir gaya! Khel khatam!", sub: "Dhyaan se jump maaro mere bhai!" },
-  { text: "Khatam! Tata bye-bye! Bach ke chalo!", sub: "Hazards se door rehna tha!" },
-  { text: "Oh bhai! Dekh ke jump karo!", sub: "Thoda timing ka chakkar hai!" },
-  { text: "Arey mori maiya! Ye kya ho gaya!", sub: "Monster ne dhar liya!" },
-  { text: "Himmat mat haar mere sher! Dobara koshish!", sub: "Ek aur baari, abki baar jeet!" },
-  { text: "Lag gaye 440 volt! Savdhaan raho!", sub: "Spikes aur traps se hoshiyaar!" }
+  "KHEL KHATAM! ARREY YAAR GIR GAYA!",
+  "KHATAM! TATA BYE-BYE! SAVDHAAN RAHO!",
+  "AREY MORI MAIYA! YE KYA HO GAYA!",
+  "OH BHAI! DEKH KE JUMP KARO!",
+  "HIMMAT MAT HAAR MERE SHER! DOBARA KOSHISH!",
+  "LAG GAYE 440 VOLT! DEKH KE CHALO!"
 ];
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
@@ -23,16 +23,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const [selectedQuote] = useState(() => {
     return HINDI_DEATH_LINES[Math.floor(Math.random() * HINDI_DEATH_LINES.length)];
   });
-
-  useEffect(() => {
-    // Speak Hindi voice on defeat
-    soundManager.speakHindi(selectedQuote.text);
-  }, [selectedQuote]);
-
-  const handleReplayVoice = () => {
-    soundManager.playGameOver();
-    soundManager.speakHindi(selectedQuote.text);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md select-none animate-in fade-in duration-300">
@@ -46,28 +36,16 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           </div>
         </div>
 
-        {/* Comic Style Romanized Hindi Dialogue Box */}
-        <div className="relative p-4 rounded-2xl bg-gradient-to-r from-rose-950/80 via-red-900/60 to-rose-950/80 border-2 border-rose-400 shadow-xl mb-5 transform hover:scale-[1.02] transition-transform">
+        {/* Clean Comic Romanized Hindi Banner (No spoken dialogues) */}
+        <div className="relative p-4 rounded-2xl bg-gradient-to-r from-rose-950/90 via-red-900/70 to-rose-950/90 border-2 border-rose-400 shadow-xl mb-5">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-rose-600 text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1 shadow-sm">
             <Flame className="w-3 h-3 text-amber-300" />
-            <span>Hindi Commentary</span>
+            <span>ALERT</span>
           </div>
 
-          <p className="text-lg sm:text-xl font-black text-rose-200 uppercase tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1">
-            "{selectedQuote.text}"
-          </p>
-          <p className="text-xs text-rose-300/80 font-semibold mt-1">
-            {selectedQuote.sub}
-          </p>
-
-          <button
-            onClick={handleReplayVoice}
-            className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-rose-800/60 hover:bg-rose-700 text-rose-200 hover:text-white rounded-lg text-[11px] font-bold border border-rose-400/40 transition-colors cursor-pointer"
-            title="Suno Hindi Voice"
-          >
-            <Volume2 className="w-3.5 h-3.5" />
-            <span>Suno Dialogue 🔊</span>
-          </button>
+          <h3 className="text-xl sm:text-2xl font-black text-rose-100 uppercase tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] mt-1 animate-pulse">
+            "{selectedQuote}"
+          </h3>
         </div>
 
         <h2 className="text-2xl font-black mb-1 tracking-tight text-white uppercase">Stage Defeated</h2>

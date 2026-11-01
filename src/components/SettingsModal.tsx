@@ -7,6 +7,7 @@ interface SettingsModalProps {
   settings: GameSettings;
   onUpdateSettings: (newSettings: GameSettings) => void;
   onResetProgress: () => void;
+  onOpenAbout: () => void;
   onClose: () => void;
 }
 
@@ -14,6 +15,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   settings,
   onUpdateSettings,
   onResetProgress,
+  onOpenAbout,
   onClose
 }) => {
   const handleMusicVol = (val: number) => {
@@ -156,6 +158,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <span className="font-bold text-white">E / X / Shift</span>
               </div>
             </div>
+          </div>
+
+          {/* About Developer Section */}
+          <div className="p-4 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-950/40 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase">Creator</span>
+                <h4 className="font-bold text-white text-sm">Daryakhan ABRO</h4>
+              </div>
+              <p className="text-xs text-amber-400/90 font-bold uppercase tracking-wider">team Mr Pro PrimeX</p>
+            </div>
+
+            <button
+              onClick={() => {
+                soundManager.playButtonClick();
+                onOpenAbout();
+              }}
+              className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95"
+            >
+              About Dev
+            </button>
           </div>
 
           {/* Reset Progress Only */}

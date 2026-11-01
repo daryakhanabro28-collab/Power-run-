@@ -271,6 +271,43 @@ class SoundManager {
         osc.start(now + idx * 0.08);
         osc.stop(now + idx * 0.08 + 0.31);
       });
+    } else if (powerType === 'titan') {
+      // Deep tectonic earth tremor & heavy stomp shockwave
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(110, now);
+      osc1.frequency.exponentialRampToValueAtTime(32, now + 0.45);
+      osc2.frequency.setValueAtTime(65, now);
+      osc2.frequency.exponentialRampToValueAtTime(25, now + 0.5);
+
+      gain.gain.setValueAtTime(0.5, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.sfxGain);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.51);
+      osc2.stop(now + 0.51);
+    } else if (powerType === 'shadow') {
+      // Supersonic phantom slice whoosh
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.31);
     } else {
       // General heroic power surge
       const osc = this.ctx.createOscillator();
@@ -385,61 +422,34 @@ class SoundManager {
     });
   }
 
-  public speakHindi(text: string) {
-    if (this.isMuted) return;
-    try {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        const hindiVoice = voices.find(
-          (v) =>
-            v.lang.startsWith('hi') ||
-            v.lang.includes('IN') ||
-            v.name.toLowerCase().includes('hindi') ||
-            v.name.toLowerCase().includes('india')
-        );
-        if (hindiVoice) {
-          utterance.voice = hindiVoice;
-        }
-        utterance.rate = 1.05;
-        utterance.pitch = 1.1;
-        utterance.volume = Math.min(1.0, this.sfxVol * 1.2);
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch {
-      // Ignore if speech synthesis unavailable
-    }
+  public speakHindi(_text: string) {
+    // Robotic TTS dialogue removed per user request: only visual animated Romanized Hindi headings remain
   }
 
   public playDeathWithHindiVoice(customLine?: string): string {
     this.playGameOver();
     const deathLines = [
-      "Arrey yaar! Gir gaya! Khel khatam!",
-      "Khatam! Tata bye-bye! Bach ke chalo!",
-      "Arey mori maiya! Ye kya ho gaya!",
-      "Oh bhai! Dekh ke jump karo!",
-      "Himmat mat haar mere sher! Dobara koshish kar!",
-      "Lag gaye 440 volt! Savdhaan raho!"
+      "KHEL KHATAM! ARREY YAAR GIR GAYA!",
+      "KHATAM! TATA BYE-BYE! DEKH KE CHALO!",
+      "AREY MORI MAIYA! YE KYA HO GAYA!",
+      "OH BHAI! DEKH KE JUMP KARO!",
+      "HIMMAT MAT HAAR MERE SHER! DOBARA KOSHISH!",
+      "LAG GAYE 440 VOLT! SAVDHAAN RAHO!"
     ];
-    const line = customLine || deathLines[Math.floor(Math.random() * deathLines.length)];
-    this.speakHindi(line);
-    return line;
+    return customLine || deathLines[Math.floor(Math.random() * deathLines.length)];
   }
 
   public playVictoryWithHindiVoice(customLine?: string): string {
     this.playVictory();
     const victoryLines = [
-      "Kya baat hai! Mauj kardi mere sher!",
-      "Shabash! Level clear ho gaya!",
-      "Bawaal macha diya bhai! Aag laga di!",
-      "Zabardast! Next level ki baari!",
-      "Dhamaka kar diya! Tu toh champion hai!",
-      "Jeet gaya re jeet gaya! Kamaal kar diya!"
+      "KYA BAAT HAI! MAUJ KARDI MERE SHER!",
+      "SHABASH! LEVEL CLEAR HO GAYA!",
+      "BAWAAL MACHA DIYA BHAI! AAG LAGA DI!",
+      "ZABARDAST! NEXT LEVEL KI BAARI!",
+      "DHAMAKA KAR DIYA! TU TOH CHAMPION HAI!",
+      "JEET GAYA RE JEET GAYA! SIKANDAR!"
     ];
-    const line = customLine || victoryLines[Math.floor(Math.random() * victoryLines.length)];
-    this.speakHindi(line);
-    return line;
+    return customLine || victoryLines[Math.floor(Math.random() * victoryLines.length)];
   }
 
   public playButtonClick() {

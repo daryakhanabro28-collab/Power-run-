@@ -9,6 +9,7 @@ interface MainMenuProps {
   gems: number;
   stats: GameStats;
   onPlayClick: () => void;
+  onAboutClick: () => void;
   onNavigate: (view: 'CHARACTER_ROSTER' | 'WORLD_SELECT' | 'MISSIONS' | 'UPGRADES' | 'SHOP' | 'SETTINGS') => void;
 }
 
@@ -18,6 +19,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   gems,
   stats,
   onPlayClick,
+  onAboutClick,
   onNavigate
 }) => {
   return (
@@ -28,7 +30,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Bar: Currency & Stats */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b border-slate-800/80 bg-slate-950/50 backdrop-blur-md">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-950/50 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center font-black text-slate-950 shadow-md">
             PR
@@ -39,18 +41,44 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Developer Attribution Pill */}
+        <button
+          onClick={() => {
+            soundManager.playButtonClick();
+            onAboutClick();
+          }}
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-amber-500/40 hover:border-amber-400 hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
+          title="About Developer & Team"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="text-[11px] text-slate-300 font-semibold">Dev: <strong className="text-amber-400 font-extrabold">Daryakhan ABRO</strong></span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase">(team Mr Pro PrimeX)</span>
+        </button>
+
+        <div className="flex items-center gap-3">
           {/* Coins */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 rounded-xl px-3.5 py-1.5 shadow-xs">
+          <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 rounded-xl px-3 py-1.5 shadow-xs">
             <Coins className="w-4 h-4 text-amber-400 fill-amber-400" />
             <span className="font-bold text-amber-300 tabular-nums text-sm">{coins.toLocaleString()}</span>
           </div>
 
           {/* Gems */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-sky-500/30 rounded-xl px-3.5 py-1.5 shadow-xs">
+          <div className="flex items-center gap-2 bg-slate-900/90 border border-sky-500/30 rounded-xl px-3 py-1.5 shadow-xs">
             <Gem className="w-4 h-4 text-sky-400 fill-sky-400" />
             <span className="font-bold text-sky-300 tabular-nums text-sm">{gems.toLocaleString()}</span>
           </div>
+
+          {/* About Mobile Button */}
+          <button
+            onClick={() => {
+              soundManager.playButtonClick();
+              onAboutClick();
+            }}
+            className="md:hidden p-2 bg-slate-900/80 border border-amber-500/40 hover:bg-slate-800 text-amber-400 rounded-xl transition-colors cursor-pointer text-xs font-bold"
+            title="About Developer"
+          >
+            Dev
+          </button>
 
           {/* Settings button */}
           <button

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { LevelCompleteResult } from '../game/engine';
 import { soundManager } from '../audio/soundManager';
-import { Star, Coins, Gem, Sparkles, Clock, ArrowRight, RotateCcw, Home, Volume2, Trophy } from 'lucide-react';
+import { Star, Coins, Gem, Sparkles, Clock, ArrowRight, RotateCcw, Home, Trophy } from 'lucide-react';
 
 interface VictoryModalProps {
   result: LevelCompleteResult;
@@ -11,12 +11,12 @@ interface VictoryModalProps {
 }
 
 const HINDI_VICTORY_LINES = [
-  { text: "Kya baat hai! Mauj kardi mere sher!", sub: "Ek dum zabardast performance!" },
-  { text: "Shabash! Level clear ho gaya!", sub: "Agla stage tumhara intezar kar raha hai!" },
-  { text: "Bawaal macha diya bhai! Aag laga di!", sub: "Raftaar aur style ka kamaal!" },
-  { text: "Zabardast! Next level ki baari!", sub: "Aise hi aage badhte raho!" },
-  { text: "Dhamaka kar diya! Tu toh champion hai!", sub: "Boss bhi thar-thar kaanpega!" },
-  { text: "Jeet gaya re jeet gaya! Sikandar!", sub: "Saare coins aur taare loot liye!" }
+  "KYA BAAT HAI! MAUJ KARDI MERE SHER!",
+  "SHABASH! LEVEL CLEAR HO GAYA!",
+  "BAWAAL MACHA DIYA BHAI! AAG LAGA DI!",
+  "ZABARDAST! NEXT LEVEL KI BAARI!",
+  "DHAMAKA KAR DIYA! TU TOH CHAMPION HAI!",
+  "JEET GAYA RE JEET GAYA! SIKANDAR!"
 ];
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
@@ -28,16 +28,6 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const [selectedQuote] = useState(() => {
     return HINDI_VICTORY_LINES[Math.floor(Math.random() * HINDI_VICTORY_LINES.length)];
   });
-
-  useEffect(() => {
-    // Speak celebratory Hindi voice
-    soundManager.speakHindi(selectedQuote.text);
-  }, [selectedQuote]);
-
-  const handleReplayVoice = () => {
-    soundManager.playVictory();
-    soundManager.speakHindi(selectedQuote.text);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md select-none animate-in fade-in duration-300">
@@ -63,28 +53,16 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           ))}
         </div>
 
-        {/* Comic Style Romanized Hindi Celebratory Dialogue Box */}
-        <div className="relative p-4 rounded-2xl bg-gradient-to-r from-amber-950/80 via-yellow-900/60 to-amber-950/80 border-2 border-amber-400 shadow-xl mb-4 transform hover:scale-[1.02] transition-transform">
+        {/* Clean Comic Romanized Hindi Banner (No spoken dialogues) */}
+        <div className="relative p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-yellow-900/70 to-amber-950/90 border-2 border-amber-400 shadow-xl mb-4">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-500 text-[10px] font-black uppercase tracking-wider text-slate-950 flex items-center gap-1 shadow-sm">
             <Trophy className="w-3 h-3" />
-            <span>Hindi Commentary</span>
+            <span>VICTORY</span>
           </div>
 
-          <p className="text-lg sm:text-xl font-black text-amber-300 uppercase tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1">
-            "{selectedQuote.text}"
-          </p>
-          <p className="text-xs text-amber-200/80 font-semibold mt-1">
-            {selectedQuote.sub}
-          </p>
-
-          <button
-            onClick={handleReplayVoice}
-            className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-white rounded-lg text-[11px] font-bold border border-amber-400/40 transition-colors cursor-pointer"
-            title="Suno Hindi Voice"
-          >
-            <Volume2 className="w-3.5 h-3.5" />
-            <span>Suno Dialogue 🔊</span>
-          </button>
+          <h3 className="text-xl sm:text-2xl font-black text-amber-200 uppercase tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] mt-1 animate-pulse">
+            "{selectedQuote}"
+          </h3>
         </div>
 
         <h2 className="text-2xl font-black mb-1 tracking-tight text-white uppercase">Stage Cleared!</h2>

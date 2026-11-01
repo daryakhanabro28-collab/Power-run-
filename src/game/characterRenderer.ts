@@ -166,6 +166,26 @@ function drawSuperpowerAura(
       ctx.arc(flameX, flameY, 4 + Math.sin(gameTime * 20 + i) * 2, 0, Math.PI * 2);
       ctx.fill();
     }
+  } else if (char.powerType === 'titan') {
+    // Heavy shockwave tremor dust rings
+    ctx.strokeStyle = '#F97316';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 3; i++) {
+      const ringR = ((gameTime * 45 + i * 25) % (radius * 1.3));
+      ctx.beginPath();
+      ctx.ellipse(0, state.height / 2, ringR, ringR * 0.35, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  } else if (char.powerType === 'shadow') {
+    // Swirling dark purple void tendrils
+    ctx.strokeStyle = '#A5B4FC';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i < 4; i++) {
+      const ang = (i * Math.PI) / 2 + gameTime * 6;
+      ctx.arc(0, 0, radius * 0.75, ang, ang + Math.PI * 0.4);
+    }
+    ctx.stroke();
   }
 
   ctx.restore();
@@ -435,7 +455,18 @@ function drawCartoonHead(
     // Hairstyle based on character
     ctx.fillStyle = '#1C1917'; // Dark hair
     ctx.beginPath();
-    if (char.hairStyle === 'short_wavy') {
+    if (char.hairStyle === 'fedora_hat') {
+      // Checked patterned fedora hat with brim
+      ctx.fillStyle = '#C2410C';
+      ctx.fillRect(-headRadius * 1.1, -headRadius * 0.4, headRadius * 2.2, 5);
+      ctx.fillStyle = '#EA580C';
+      ctx.beginPath();
+      ctx.roundRect(-headRadius * 0.75, -headRadius * 1.1, headRadius * 1.5, headRadius * 0.8, [6, 6, 0, 0]);
+      ctx.fill();
+      // Hat band
+      ctx.fillStyle = '#78350F';
+      ctx.fillRect(-headRadius * 0.75, -headRadius * 0.5, headRadius * 1.5, 3);
+    } else if (char.hairStyle === 'short_wavy') {
       ctx.arc(0, -headRadius * 0.4, headRadius * 0.95, Math.PI, Math.PI * 2);
       ctx.fill();
     } else if (char.hairStyle === 'side_part') {

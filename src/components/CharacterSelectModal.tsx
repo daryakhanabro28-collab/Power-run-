@@ -10,6 +10,7 @@ interface CharacterSelectModalProps {
   onSelectCharacter: (charId: string) => void;
   onUnlockCharacter: (charId: string, costCoins: number) => void;
   onRenameCharacter: (charId: string, newName: string) => void;
+  onCreateCustomClick: () => void;
   onClose: () => void;
 }
 
@@ -20,6 +21,7 @@ export const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
   onSelectCharacter,
   onUnlockCharacter,
   onRenameCharacter,
+  onCreateCustomClick,
   onClose
 }) => {
   const [editingCharId, setEditingCharId] = useState<string | null>(null);
@@ -56,15 +58,27 @@ export const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
             <span className="text-xs font-semibold text-slate-400">({characters.length} Champions)</span>
           </div>
 
-          <button
-            onClick={() => {
-              soundManager.playButtonClick();
-              onClose();
-            }}
-            className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                soundManager.playButtonClick();
+                onCreateCustomClick();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md active:scale-95"
+            >
+              <span>+ Custom Hero (Photo)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                soundManager.playButtonClick();
+                onClose();
+              }}
+              className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Characters Grid */}

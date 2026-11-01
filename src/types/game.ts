@@ -10,7 +10,8 @@ export type SuperpowerType =
   | 'fire'
   | 'crystal'
   | 'chrono'
-  | 'shadow';
+  | 'shadow'
+  | 'titan';
 
 export interface Character {
   id: string;
@@ -21,7 +22,7 @@ export interface Character {
   avatarBgColor: string;
   outfitColor: string;
   accentColor: string;
-  hairStyle: 'short_wavy' | 'side_part' | 'wavy_styled' | 'sleek_dark' | 'textured_fringe';
+  hairStyle: 'short_wavy' | 'side_part' | 'wavy_styled' | 'sleek_dark' | 'textured_fringe' | 'fedora_hat' | 'custom';
   powerType: SuperpowerType;
   powerName: string;
   powerDescription: string;

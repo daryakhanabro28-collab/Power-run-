@@ -13,6 +13,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { PauseModal } from './components/PauseModal';
 import { GameOverModal } from './components/GameOverModal';
 import { VictoryModal } from './components/VictoryModal';
+import { AboutModal } from './components/AboutModal';
+import { CustomCharacterModal } from './components/CustomCharacterModal';
 import { LevelCompleteResult } from './game/engine';
 
 export default function App() {
@@ -20,6 +22,8 @@ export default function App() {
   const [screen, setScreen] = useState<ScreenState>('TITLE_MENU');
   const [activeLevel, setActiveLevel] = useState<LevelConfig>(() => saveData.levels['1-1'] || Object.values(saveData.levels)[0]);
   const [lastVictoryResult, setLastVictoryResult] = useState<LevelCompleteResult | null>(null);
+  const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
+  const [showCustomCharModal, setShowCustomCharModal] = useState<boolean>(false);
 
   // Sync Audio on mount & changes
   useEffect(() => {
@@ -62,6 +66,14 @@ export default function App() {
     updateSave((prev) => ({
       ...prev,
       characters: prev.characters.map((c) => (c.id === charId ? { ...c, name: newName } : c))
+    }));
+  };
+
+  const handleSaveCustomCharacter = (newChar: Character) => {
+    updateSave((prev) => ({
+      ...prev,
+      characters: [newChar, ...prev.characters],
+      selectedCharacterId: newChar.id
     }));
   };
 
@@ -258,6 +270,7 @@ export default function App() {
           gems={saveData.gems}
           stats={saveData.stats}
           onPlayClick={() => setScreen('PLAYING')}
+          onAboutClick={() => setShowAboutModal(true)}
           onNavigate={(view) => setScreen(view as ScreenState)}
         />
       )}
@@ -271,6 +284,7 @@ export default function App() {
           onSelectCharacter={handleSelectCharacter}
           onUnlockCharacter={handleUnlockCharacter}
           onRenameCharacter={handleRenameCharacter}
+          onCreateCustomClick={() => setShowCustomCharModal(true)}
           onClose={() => setScreen('TITLE_MENU')}
         />
       )}
@@ -328,6 +342,7 @@ export default function App() {
             setSaveData(initial);
             soundManager.playButtonClick();
           }}
+          onOpenAbout={() => setShowAboutModal(true)}
           onClose={() => setScreen('TITLE_MENU')}
         />
       )}
@@ -365,6 +380,19 @@ export default function App() {
             soundManager.stopBGM();
             setScreen('TITLE_MENU');
           }}
+        />
+      )}
+
+      {/* About Developer Modal */}
+      {showAboutModal && (
+        <AboutModal onClose={() => setShowAboutModal(false)} />
+      )}
+
+      {/* Custom Character Creator Modal */}
+      {showCustomCharModal && (
+        <CustomCharacterModal
+          onSaveCustomCharacter={handleSaveCustomCharacter}
+          onClose={() => setShowCustomCharModal(false)}
         />
       )}
     </div>
