@@ -19,21 +19,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Setup Java 21 (Required for Capacitor 7 & AGP 8.7+)
+      - name: Setup Java 21 (Required for AGP 8.7+ and Capacitor 7)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Android SDK 35
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-35 build-tools;35.0.0'
+          packages: 'platforms;android-34 platforms;android-35 build-tools;34.0.0 build-tools;35.0.0'
 
       - name: Accept Android SDK Licenses
         run: |
@@ -50,7 +50,6 @@ jobs:
       - name: Sync Capacitor Android Platform
         run: |
           npx cap telemetry off || true
-          npx cap add android || true
           npx cap sync android
 
       - name: Configure Android Local Properties
@@ -61,20 +60,24 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew clean assembleDebug --no-daemon --stacktrace
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2560m -XX:MaxMetaspaceSize=512m"
 
       - name: Locate and Prepare Debug APK
         run: |
           mkdir -p build-output
-          APK_PATH=$(find android/app/build/outputs/apk -type f -name "*debug.apk" | head -n 1)
+          APK_PATH=$(find android/app/build/outputs/apk/debug -type f -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find android/app/build/outputs/apk -type f -name "*debug.apk" | head -n 1)
+          fi
           if [ -n "$APK_PATH" ]; then
             echo "Found APK at: $APK_PATH"
             cp "$APK_PATH" build-output/POWER-RUN-Debug.apk
-            ls -lh build-output/
+            ls -lh build-output/POWER-RUN-Debug.apk
           else
             echo "ERROR: Debug APK not found!"
+            find android/app/build -type f || true
             exit 1
           fi
 
@@ -84,26 +87,34 @@ jobs:
           name: POWER-RUN-Debug-APK
           path: build-output/POWER-RUN-Debug.apk
           retention-days: 30
+          if-no-files-found: error
 
       - name: Create GitHub Release with Direct APK Download
         uses: softprops/action-gh-release@v2
+        if: success()
+        continue-on-error: true
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: "POWER RUN Android Debug APK (Build #${{ github.run_number }})"
+          tag_name: "v1.0-build-${{ github.run_number }}"
+          name: "🎮 POWER RUN Debug APK (Build #${{ github.run_number }})"
           body: |
-            ### 🎮 POWER RUN: 2D Adventure Platformer - Android Debug APK
+            ### 🎮 POWER RUN: 2D Adventure Platformer - Android APK
             **Developer:** Daryakhan ABRO
             **Team:** team Mr Pro PrimeX
 
-            #### ✨ What's included in this build:
-            - **Gul Sher Abro** added with *Titan Elephant Stomp* (Heavy Tremor & Spikes-to-Coins).
-            - **Shahzad Abro** added with *Eclipse Phantom Dash* (Supersonic slice & Magnet).
-            - Custom Character Photo Upload hero creator.
-            - Clean Romanized Hindi headings & commentary.
-            - Progressive stage difficulty and strict 1-by-1 unlocking.
-            - Zero free coins economy.
+            ✅ **Ready to install on Android phone!**
 
-            ⬇️ **Download `POWER-RUN-Debug.apk` below and install directly on your Android phone!**
+            #### 📲 Installation Instructions:
+            1. Download **`POWER-RUN-Debug.apk`** below under **Assets** (Direct APK file, no unzipping needed).
+            2. When downloaded, tap **Open**.
+            3. If Android shows *"Blocked by Play Protect"* or *"Harmful app blocked"*, tap **More details** and then tap **Install anyway**.
+            4. Make sure "Install unknown apps" permission is enabled for Chrome or File Manager in your phone Settings.
+
+            #### ✨ Features in this version:
+            - **Gul Sher Abro** (Titan Elephant Stomp - Earth Tremor & Spikes-to-Coins)
+            - **Shahzad Abro** (Eclipse Phantom Dash - Supersonic Slice & Magnet)
+            - Custom Character Photo Upload hero creator
+            - Pure Romanized Hindi headings & game text
+            - About Developer section: Daryakhan ABRO (team Mr Pro PrimeX)
           files: build-output/POWER-RUN-Debug.apk
           draft: false
           prerelease: false
