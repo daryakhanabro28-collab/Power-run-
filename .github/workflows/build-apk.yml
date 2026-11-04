@@ -90,21 +90,19 @@ jobs:
             cp build-output/POWER-RUN-Debug.apk build-output/POWER-RUN.apk
           fi
           ls -lh build-output/
-          # Verify APK signature using Android apksigner
-          if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
-            $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose build-output/POWER-RUN.apk || true
-          fi
-
-      - name: Generate Direct Download Link Mirror
+      - name: Verify APK Integrity and CRC Checksum
         run: |
-          echo "### 📦 APK Build Info" >> $GITHUB_STEP_SUMMARY
-          ls -lh build-output/ >> $GITHUB_STEP_SUMMARY
-          MIRROR_LINK=$(curl -s --upload-file build-output/POWER-RUN.apk https://transfer.sh/POWER-RUN.apk || true)
-          if [ -n "$MIRROR_LINK" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "🚀 **Direct APK Link (Ready to Install, No Zip):** [Download POWER-RUN.apk]($MIRROR_LINK)" >> $GITHUB_STEP_SUMMARY
-            echo "MIRROR_LINK=$MIRROR_LINK" >> $GITHUB_ENV
+          echo "=== Testing APK ZIP Integrity & CRC32 ==="
+          unzip -t build-output/POWER-RUN.apk
+          unzip -t build-output/POWER-RUN-Debug.apk
+          echo "=== Verifying APK Signature ==="
+          if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
+            $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose build-output/POWER-RUN.apk
           fi
+          echo "### 📦 APK Build Info (Verified No CRC Errors)" >> $GITHUB_STEP_SUMMARY
+          ls -lh build-output/ >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "SHA256 (POWER-RUN.apk): \`$(sha256sum build-output/POWER-RUN.apk | awk '{print $1}')\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
