@@ -56,11 +56,18 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
+      - name: Setup Consistent Debug Keystore
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=PowerRun, OU=TeamMrProPrimeX, O=DaryakhanAbro, L=Karachi, S=Sindh, C=PK"
+          fi
+
       - name: Build Android Debug APK with Gradle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --stacktrace
+          ./gradlew clean assembleDebug -Pandroid.injected.testOnly=false --no-daemon --stacktrace
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2560m -XX:MaxMetaspaceSize=512m"
 
@@ -75,6 +82,10 @@ jobs:
             echo "Found APK at: $APK_PATH"
             cp "$APK_PATH" build-output/POWER-RUN-Debug.apk
             ls -lh build-output/POWER-RUN-Debug.apk
+            # Verify APK signature using Android apksigner
+            if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
+              $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose build-output/POWER-RUN-Debug.apk || true
+            fi
           else
             echo "ERROR: Debug APK not found!"
             find android/app/build -type f || true
@@ -115,19 +126,23 @@ jobs:
 
             ✅ **Ready to install on Android phone!**
 
+            ⚠️ **IMPORTANT INSTALLATION NOTE**:
+            Agar aapke phone par pehle se POWER RUN install hai, toh naya APK install karne se pehle **purana version phone se UNINSTALL (Delete) zaroor karein**!
+            Android ki security policy ke mutabiq agar signature update ho jaye toh direct update karne par "App not installed as package appears to be invalid" ka error aata hai. Purana version uninstall kar ke naya APK install karenge toh yeh 100% first try par install ho jayega!
+
             #### 📲 Installation Instructions:
             1. Download **`POWER-RUN-Debug.apk`** below under **Assets** (Direct APK file, no unzipping needed).
-            2. Or use the Direct Mirror: ${{ env.MIRROR_LINK }}
-            3. When downloaded, tap **Open**.
-            4. If Android shows *"Blocked by Play Protect"* or *"Harmful app blocked"*, tap **More details** and then tap **Install anyway**.
+            2. When downloaded, tap **Open**.
+            3. If Android shows *"Blocked by Play Protect"* or *"Harmful app blocked"*, tap **More details** and then tap **Install anyway**.
             4. Make sure "Install unknown apps" permission is enabled for Chrome or File Manager in your phone Settings.
 
             #### ✨ Features in this version:
-            - **Gul Sher Abro** (Titan Elephant Stomp - Earth Tremor & Spikes-to-Coins)
-            - **Shahzad Abro** (Eclipse Phantom Dash - Supersonic Slice & Magnet)
+            - Official 3D Metallic/Neon App Launcher Icon (POWER RUN)
+            - Fixed UI Scaling across Portrait & Landscape on all phone screens
+            - Full responsive touch controls with high DPI razor-sharp canvas
+            - Gul Sher Abro (Titan Stomp) & Shahzad Abro (Eclipse Phantom)
             - Custom Character Photo Upload hero creator
-            - Pure Romanized Hindi headings & game text
-            - About Developer section: Daryakhan ABRO (team Mr Pro PrimeX)
+            - Developer section: Daryakhan ABRO (team Mr Pro PrimeX)
           files: build-output/POWER-RUN-Debug.apk
           draft: false
           prerelease: false

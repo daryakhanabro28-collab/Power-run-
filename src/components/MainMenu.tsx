@@ -16,6 +16,7 @@ import {
   Sparkles,
   UserPlus
 } from 'lucide-react';
+import gameLogo from '../assets/images/game_logo.jpg';
 
 interface MainMenuProps {
   selectedCharacter: Character;
@@ -81,7 +82,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       <header className="relative z-10 flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-amber-400 shadow-md shrink-0">
-            <img src="/assets/game_logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+            <img
+              src={gameLogo}
+              alt="Logo"
+              onError={(e) => { e.currentTarget.src = '/assets/game_logo.jpg'; }}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
@@ -165,8 +171,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-1 sm:mb-2">
               <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md bg-slate-900 shrink-0">
                 <img
-                  src="/assets/game_logo.jpg"
+                  src={gameLogo}
                   alt="POWER RUN"
+                  onError={(e) => { e.currentTarget.src = '/assets/game_logo.jpg'; }}
                   className="w-full h-full object-cover"
                 />
               </div>

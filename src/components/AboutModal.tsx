@@ -1,6 +1,7 @@
 import React from 'react';
 import { soundManager } from '../audio/soundManager';
 import { X, Heart, Sparkles, Gamepad2, Award } from 'lucide-react';
+import gameLogo from '../assets/images/game_logo.jpg';
 
 interface AboutModalProps {
   onClose: () => void;
@@ -26,8 +27,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
         <div className="relative w-20 h-20 mx-auto mb-3">
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-amber-500 to-sky-500 blur-md opacity-50 animate-pulse" />
           <img
-            src="/assets/game_logo.jpg"
+            src={gameLogo}
             alt="POWER RUN Logo"
+            onError={(e) => { e.currentTarget.src = '/assets/game_logo.jpg'; }}
             className="relative w-full h-full object-cover rounded-2xl border-2 border-amber-400 shadow-xl"
           />
         </div>

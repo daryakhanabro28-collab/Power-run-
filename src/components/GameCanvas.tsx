@@ -90,9 +90,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       <canvas ref={canvasRef} className="w-full h-full block cursor-crosshair" />
 
       {/* Low-Occlusion HUD Overlay */}
-      <div className="absolute top-0 left-0 right-0 p-4 md:p-6 pointer-events-none flex items-center justify-between z-20">
+      <div
+        className="absolute top-0 left-0 right-0 p-3 sm:p-5 pointer-events-none flex items-center justify-between z-20"
+        style={{
+          paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
+          paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
+          paddingRight: 'max(0.75rem, env(safe-area-inset-right))'
+        }}
+      >
         {/* Left: Health & Hero Profile */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700/60 rounded-xl px-3 py-1.5 backdrop-blur-xs">
             {Array.from({ length: maxHealth }).map((_, i) => (
               <Heart
@@ -159,42 +166,49 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
       {/* Mobile Touch Controls Overlay */}
       {touchControlsVisible && (
-        <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-4 md:p-8 z-30">
-          <div className="flex items-end justify-between w-full">
+        <div
+          className="absolute inset-0 pointer-events-none flex flex-col justify-end z-30"
+          style={{
+            paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+            paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
+            paddingRight: 'max(0.75rem, env(safe-area-inset-right))'
+          }}
+        >
+          <div className="flex items-end justify-between w-full p-2 sm:p-4">
             {/* Left Hand: D-Pad (Left / Right) */}
-            <div className="flex items-center gap-2 pointer-events-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
               <button
                 onTouchStart={() => handleTouchStart('left')}
                 onTouchEnd={() => handleTouchEnd('left')}
                 onMouseDown={() => handleTouchStart('left')}
                 onMouseUp={() => handleTouchEnd('left')}
-                className="w-16 h-16 rounded-2xl bg-slate-900/75 border-2 border-slate-700 text-white flex items-center justify-center active:bg-slate-700 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
+                className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-slate-900/80 border-2 border-slate-700 text-white flex items-center justify-center active:bg-slate-700 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
               >
-                <ArrowLeft className="w-8 h-8" />
+                <ArrowLeft className="w-7 h-7 sm:w-8 sm:h-8" />
               </button>
               <button
                 onTouchStart={() => handleTouchStart('right')}
                 onTouchEnd={() => handleTouchEnd('right')}
                 onMouseDown={() => handleTouchStart('right')}
                 onMouseUp={() => handleTouchEnd('right')}
-                className="w-16 h-16 rounded-2xl bg-slate-900/75 border-2 border-slate-700 text-white flex items-center justify-center active:bg-slate-700 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
+                className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-slate-900/80 border-2 border-slate-700 text-white flex items-center justify-center active:bg-slate-700 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
               >
-                <ArrowRight className="w-8 h-8" />
+                <ArrowRight className="w-7 h-7 sm:w-8 sm:h-8" />
               </button>
             </div>
 
             {/* Right Hand: Action Buttons (Slide, Power, Jump) */}
-            <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="flex items-center gap-1.5 sm:gap-3 pointer-events-auto">
               {/* Slide Button */}
               <button
                 onTouchStart={() => handleTouchStart('slide')}
                 onTouchEnd={() => handleTouchEnd('slide')}
                 onMouseDown={() => handleTouchStart('slide')}
                 onMouseUp={() => handleTouchEnd('slide')}
-                className="w-15 h-15 rounded-2xl bg-slate-900/80 border-2 border-emerald-600/70 text-emerald-400 flex flex-col items-center justify-center active:bg-emerald-800/40 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
+                className="w-12 h-12 sm:w-15 sm:h-15 rounded-2xl bg-slate-900/85 border-2 border-emerald-600/70 text-emerald-400 flex flex-col items-center justify-center active:bg-emerald-800/40 active:scale-90 transition-all shadow-xl backdrop-blur-xs select-none touch-none"
               >
-                <ArrowDown className="w-6 h-6" />
-                <span className="text-[10px] font-black uppercase tracking-tighter">Slide</span>
+                <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter">Slide</span>
               </button>
 
               {/* Superpower Button */}
@@ -204,16 +218,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
                 onMouseDown={() => handleTouchStart('power')}
                 onMouseUp={() => handleTouchEnd('power')}
                 disabled={!powerReady && !powerActive}
-                className={`relative w-16 h-16 rounded-2xl border-2 flex flex-col items-center justify-center active:scale-90 transition-all shadow-xl select-none touch-none ${
+                className={`relative w-13 h-13 sm:w-16 sm:h-16 rounded-2xl border-2 flex flex-col items-center justify-center active:scale-90 transition-all shadow-xl select-none touch-none ${
                   powerActive
                     ? 'bg-amber-500 border-yellow-200 text-slate-950 animate-pulse'
                     : powerReady
-                    ? 'bg-amber-600/80 border-amber-400 text-amber-100 hover:bg-amber-500'
+                    ? 'bg-amber-600/85 border-amber-400 text-amber-100 hover:bg-amber-500'
                     : 'bg-slate-900/60 border-slate-800 text-slate-500'
                 }`}
               >
-                <Zap className="w-7 h-7 fill-current" />
-                <span className="text-[9px] font-black uppercase tracking-tighter">Power</span>
+                <Zap className="w-6 h-6 sm:w-7 sm:h-7 fill-current" />
+                <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter">Power</span>
                 {!powerReady && (
                   <div
                     className="absolute inset-0 bg-slate-950/70 rounded-2xl flex items-center justify-center text-xs font-bold text-amber-400"
@@ -228,10 +242,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
                 onTouchEnd={() => handleTouchEnd('jump')}
                 onMouseDown={() => handleTouchStart('jump')}
                 onMouseUp={() => handleTouchEnd('jump')}
-                className="w-18 h-18 rounded-2xl bg-blue-600/90 border-2 border-blue-400 text-white flex flex-col items-center justify-center active:bg-blue-700 active:scale-90 transition-all shadow-2xl backdrop-blur-xs select-none touch-none"
+                className="w-15 h-15 sm:w-18 sm:h-18 rounded-2xl bg-blue-600/95 border-2 border-blue-400 text-white flex flex-col items-center justify-center active:bg-blue-700 active:scale-90 transition-all shadow-2xl backdrop-blur-xs select-none touch-none"
               >
-                <ArrowUp className="w-8 h-8 stroke-[3]" />
-                <span className="text-[10px] font-black uppercase tracking-wider">Jump</span>
+                <ArrowUp className="w-7 h-7 sm:w-8 sm:h-8 stroke-[3]" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider">Jump</span>
               </button>
             </div>
           </div>

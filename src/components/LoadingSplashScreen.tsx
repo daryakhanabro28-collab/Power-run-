@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { soundManager } from '../audio/soundManager';
 import { Sparkles, Play, Cpu } from 'lucide-react';
+import gameLogo from '../assets/images/game_logo.jpg';
 
 interface LoadingSplashScreenProps {
   onComplete: () => void;
@@ -88,8 +89,11 @@ export const LoadingSplashScreen: React.FC<LoadingSplashScreenProps> = ({ onComp
           <div className="absolute -inset-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-sky-400 blur-lg opacity-60 group-hover:opacity-90 animate-pulse transition duration-700" />
           <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-2xl overflow-hidden border-2 sm:border-3 border-amber-400 shadow-xl bg-slate-900 mx-auto">
             <img
-              src="/assets/game_logo.jpg"
+              src={gameLogo}
               alt="POWER RUN Official Game Logo"
+              onError={(e) => {
+                e.currentTarget.src = '/assets/game_logo.jpg';
+              }}
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
             />
           </div>
