@@ -15,11 +15,13 @@ import { GameOverModal } from './components/GameOverModal';
 import { VictoryModal } from './components/VictoryModal';
 import { AboutModal } from './components/AboutModal';
 import { CustomCharacterModal } from './components/CustomCharacterModal';
+import { LoadingSplashScreen } from './components/LoadingSplashScreen';
 import { LevelCompleteResult } from './game/engine';
 
 export default function App() {
   const [saveData, setSaveData] = useState<GameSaveData>(() => loadSaveData());
   const [screen, setScreen] = useState<ScreenState>('TITLE_MENU');
+  const [isLoadingSplash, setIsLoadingSplash] = useState<boolean>(true);
   const [activeLevel, setActiveLevel] = useState<LevelConfig>(() => saveData.levels['1-1'] || Object.values(saveData.levels)[0]);
   const [lastVictoryResult, setLastVictoryResult] = useState<LevelCompleteResult | null>(null);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
@@ -271,8 +273,14 @@ export default function App() {
           stats={saveData.stats}
           onPlayClick={() => setScreen('PLAYING')}
           onAboutClick={() => setShowAboutModal(true)}
+          onCreateCustomClick={() => setShowCustomCharModal(true)}
           onNavigate={(view) => setScreen(view as ScreenState)}
         />
+      )}
+
+      {/* Opening Intro & Loading Splash Animation */}
+      {isLoadingSplash && (
+        <LoadingSplashScreen onComplete={() => setIsLoadingSplash(false)} />
       )}
 
       {/* Roster Modal */}

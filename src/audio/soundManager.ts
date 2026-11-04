@@ -32,7 +32,7 @@ class SoundManager {
       this.musicGain.connect(this.masterGain);
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
   }
 
@@ -324,6 +324,28 @@ class SoundManager {
       osc.start(now);
       osc.stop(now + 0.36);
     }
+  }
+
+  public playPowerup() {
+    this.initContext();
+    if (!this.ctx || !this.sfxGain || this.isMuted) return;
+
+    const now = this.ctx.currentTime;
+    const freqs = [330, 440, 554.37, 659.25, 880];
+    freqs.forEach((f, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + idx * 0.05);
+
+      gain.gain.setValueAtTime(0.2, now + idx * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.05 + 0.18);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain!);
+      osc.start(now + idx * 0.05);
+      osc.stop(now + idx * 0.05 + 0.19);
+    });
   }
 
   public playChestOpen() {
