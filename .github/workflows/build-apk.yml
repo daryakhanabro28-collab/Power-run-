@@ -56,58 +56,61 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Setup Consistent Debug Keystore
+      - name: Setup Consistent Debug & Release Keystore
         run: |
           mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=PowerRun, OU=TeamMrProPrimeX, O=DaryakhanAbro, L=Karachi, S=Sindh, C=PK"
+          mkdir -p android/app
+          if [ ! -f android/app/debug.keystore ]; then
+            keytool -genkey -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=PowerRun, OU=TeamMrProPrimeX, O=DaryakhanAbro, L=Karachi, S=Sindh, C=PK"
           fi
+          cp -f android/app/debug.keystore ~/.android/debug.keystore || true
 
-      - name: Build Android Debug APK with Gradle
+      - name: Build Android APK with Gradle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug -Pandroid.injected.testOnly=false --no-daemon --stacktrace
+          ./gradlew clean assembleRelease assembleDebug -Pandroid.injected.testOnly=false --no-daemon --stacktrace
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2560m -XX:MaxMetaspaceSize=512m"
 
-      - name: Locate and Prepare Debug APK
+      - name: Locate and Prepare Production APK
         run: |
           mkdir -p build-output
-          APK_PATH=$(find android/app/build/outputs/apk/debug -type f -name "*.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find android/app/build/outputs/apk -type f -name "*debug.apk" | head -n 1)
+          RELEASE_APK=$(find android/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)
+          if [ -n "$RELEASE_APK" ]; then
+            echo "Found Release APK at: $RELEASE_APK"
+            cp "$RELEASE_APK" build-output/POWER-RUN.apk
           fi
-          if [ -n "$APK_PATH" ]; then
-            echo "Found APK at: $APK_PATH"
-            cp "$APK_PATH" build-output/POWER-RUN-Debug.apk
-            ls -lh build-output/POWER-RUN-Debug.apk
-            # Verify APK signature using Android apksigner
-            if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
-              $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose build-output/POWER-RUN-Debug.apk || true
-            fi
-          else
-            echo "ERROR: Debug APK not found!"
-            find android/app/build -type f || true
-            exit 1
+          DEBUG_APK=$(find android/app/build/outputs/apk/debug -type f -name "*.apk" | head -n 1)
+          if [ -n "$DEBUG_APK" ]; then
+            echo "Found Debug APK at: $DEBUG_APK"
+            cp "$DEBUG_APK" build-output/POWER-RUN-Debug.apk
+          fi
+          if [ ! -f build-output/POWER-RUN.apk ] && [ -f build-output/POWER-RUN-Debug.apk ]; then
+            cp build-output/POWER-RUN-Debug.apk build-output/POWER-RUN.apk
+          fi
+          ls -lh build-output/
+          # Verify APK signature using Android apksigner
+          if [ -f "$ANDROID_HOME/build-tools/34.0.0/apksigner" ]; then
+            $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose build-output/POWER-RUN.apk || true
           fi
 
       - name: Generate Direct Download Link Mirror
         run: |
           echo "### 📦 APK Build Info" >> $GITHUB_STEP_SUMMARY
-          ls -lh build-output/POWER-RUN-Debug.apk >> $GITHUB_STEP_SUMMARY
-          MIRROR_LINK=$(curl -s --upload-file build-output/POWER-RUN-Debug.apk https://transfer.sh/POWER-RUN-Debug.apk || true)
+          ls -lh build-output/ >> $GITHUB_STEP_SUMMARY
+          MIRROR_LINK=$(curl -s --upload-file build-output/POWER-RUN.apk https://transfer.sh/POWER-RUN.apk || true)
           if [ -n "$MIRROR_LINK" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "🚀 **Direct APK Link (No login, No Zip):** [Download APK]($MIRROR_LINK)" >> $GITHUB_STEP_SUMMARY
+            echo "🚀 **Direct APK Link (Ready to Install, No Zip):** [Download POWER-RUN.apk]($MIRROR_LINK)" >> $GITHUB_STEP_SUMMARY
             echo "MIRROR_LINK=$MIRROR_LINK" >> $GITHUB_ENV
           fi
 
-      - name: Upload Debug APK Artifact
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: POWER-RUN-Debug-APK
-          path: build-output/POWER-RUN-Debug.apk
+          name: POWER-RUN-Android-APK
+          path: build-output/*.apk
           retention-days: 30
           compression-level: 0
           if-no-files-found: error
@@ -117,33 +120,34 @@ jobs:
         if: success()
         continue-on-error: true
         with:
-          tag_name: "v1.0-build-${{ github.run_number }}"
-          name: "🎮 POWER RUN Debug APK (Build #${{ github.run_number }})"
+          tag_name: "v1.0.1-build-${{ github.run_number }}"
+          name: "🎮 POWER RUN Android Game (Build #${{ github.run_number }})"
           body: |
             ### 🎮 POWER RUN: 2D Adventure Platformer - Android APK
             **Developer:** Daryakhan ABRO
             **Team:** team Mr Pro PrimeX
+            **Version:** 1.0.1 (Build #${{ github.run_number }})
 
-            ✅ **Ready to install on Android phone!**
-
-            ⚠️ **IMPORTANT INSTALLATION NOTE**:
-            Agar aapke phone par pehle se POWER RUN install hai, toh naya APK install karne se pehle **purana version phone se UNINSTALL (Delete) zaroor karein**!
-            Android ki security policy ke mutabiq agar signature update ho jaye toh direct update karne par "App not installed as package appears to be invalid" ka error aata hai. Purana version uninstall kar ke naya APK install karenge toh yeh 100% first try par install ho jayega!
+            ✅ **Ready to install on ANY Android phone!**
 
             #### 📲 Installation Instructions:
-            1. Download **`POWER-RUN-Debug.apk`** below under **Assets** (Direct APK file, no unzipping needed).
+            1. Download **`POWER-RUN.apk`** below under **Assets** (Direct APK file, no unzipping needed).
             2. When downloaded, tap **Open**.
             3. If Android shows *"Blocked by Play Protect"* or *"Harmful app blocked"*, tap **More details** and then tap **Install anyway**.
             4. Make sure "Install unknown apps" permission is enabled for Chrome or File Manager in your phone Settings.
 
             #### ✨ Features in this version:
-            - Official 3D Metallic/Neon App Launcher Icon (POWER RUN)
+            - Official 3D Metallic/Neon App Launcher Icon (POWER RUN) on home screen & installer
+            - Signed with permanent keystore (v1 Jar + v2 Full APK Signature)
+            - Non-testOnly production build (fixes "package appears to be invalid" error)
             - Fixed UI Scaling across Portrait & Landscape on all phone screens
             - Full responsive touch controls with high DPI razor-sharp canvas
             - Gul Sher Abro (Titan Stomp) & Shahzad Abro (Eclipse Phantom)
             - Custom Character Photo Upload hero creator
             - Developer section: Daryakhan ABRO (team Mr Pro PrimeX)
-          files: build-output/POWER-RUN-Debug.apk
+          files: |
+            build-output/POWER-RUN.apk
+            build-output/POWER-RUN-Debug.apk
           draft: false
           prerelease: false
         env:
